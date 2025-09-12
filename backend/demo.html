@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SSE Chat Test (Clean Words)</title>
+  <style>
+    body { 
+      font-family: system-ui, sans-serif; 
+      padding: 20px; 
+      background: #0f172a; 
+      color: #e2e8f0;
+      display: flex; 
+      justify-content: center; 
+    }
+    #chat {
+      width: 650px;
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .message {
+      margin: 12px 0;
+      padding: 12px;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+    .ai {
+      background: #334155;
+      border-left: 4px solid #38bdf8;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat">
+    <div class="message ai"><em>Waiting for response...</em></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <script>
+    const frameId = "a61b8fb0-90a9-4421-a830-81567244c918";
+    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImZiMmE5Mjc4LTJiNGMtNGQ1ZC04MDgyLTYwNGViNzdkNmViMCIsInVzZXJuYW1lIjoiY2hhaXR1IGFiaGFkZSIsImVtYWlsIjoiY2FiaGFkZUBnbWFpbC5jb20iLCJpYXQiOjE3NTczMTg3NjksImV4cCI6MTc1NzQwNTE2OX0.bkDKmFRcRQy-8YVf2HyZOr4_p1bhFVLY7FzVUgLwixE"; // replace with your JWT
+
+    async function startChat() {
+      const chatBox = document.getElementById("chat");
+      chatBox.innerHTML = "";
+
+      const msg = document.createElement("div");
+      msg.className = "message ai";
+      chatBox.appendChild(msg);
+
+      const response = await fetch(`http://localhost:5000/api/v1/frame/${frameId}/chat`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ query: "Explain recursion in very simple terms" })
+      });
+
+      if (!response.body) {
+        msg.innerHTML = "❌ No stream available!";
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+
+        chunk.split("\n").forEach(line => {
+          if (line.startsWith("data:")) {
+            const text = line.replace("data:", "").trim();
+            if (text && text !== "end") {
+              // ✅ Append without adding extra spaces
+              fullText += text;
+              renderMarkdown(fullText, msg);
+            }
+          }
+        });
+      }
+    }
+
+    function renderMarkdown(text, container) {
+      container.innerHTML = marked.parse(text);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    startChat();
+  </script>
+</body>
+</html>
