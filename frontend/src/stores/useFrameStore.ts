@@ -1,10 +1,13 @@
 import { create } from "zustand";
 import axios, { AxiosError } from "axios";
+import { EventSourcePolyfill } from "event-source-polyfill";
 
 interface Frame{
     id: string,
     title: string,
-    description: string
+    description: string,
+    materialCount?: string,
+    messageCount?: String
 }
 
 interface Message{
@@ -18,7 +21,8 @@ interface Message{
 interface FrameStore{
     frames: Frame[] ;
     error: string | null;
-
+    jobid: string;
+    
     getFrames: () => Promise<boolean>;
     isgetFramesloading: boolean;
     addFrame: (data: {title: string, description: string}) => Promise<boolean>;
@@ -31,6 +35,10 @@ interface FrameStore{
     isuploadfileloading: boolean;
     uploadlink: (url: string, frameId: string) => Promise<boolean>;
     isuploadlinkloading: boolean;
+    chat: (query: string, frameId: string, isRagEnabled: boolean) => Promise<boolean>;
+    ischatloading: boolean;
+
+    messages?: Message[];
 }
 
 const getToken = (): string | null => {
@@ -55,7 +63,9 @@ const useFrameStore = create<FrameStore>()(
         isgetMessagesloading: false,
         isuploadfileloading: false,
         isuploadlinkloading: false,
+        ischatloading: false,
         error: null,
+        jobid:null,
 
         getFrames: async () => {
             set({ isgetFramesloading: true, error: null });
@@ -106,7 +116,9 @@ const useFrameStore = create<FrameStore>()(
                     }
                 );
                 set({ isgetMessagesloading: false });
+                set({ messages: res.data });
                 return res.data;
+
             } catch (err: any) {
                 let message = "Something went wrong. Please try again.";
 
@@ -137,7 +149,7 @@ const useFrameStore = create<FrameStore>()(
               const newFrame: Frame = {
                 id: res.data.id,
                 title: res.data.title,
-                description: res.data.description
+                description: res.data.description,
               };
           
               set((state) => ({
@@ -209,6 +221,7 @@ const useFrameStore = create<FrameStore>()(
                     }
                 );
                 console.log(res.data);
+                set({jobid:res.data.jobid})
                 set({ isuploadfileloading: false });
                 return true;
             } catch (err: any) {
@@ -242,6 +255,7 @@ const useFrameStore = create<FrameStore>()(
                     }
                 );
                 console.log(res.data);
+                set({jobid:res.data.jobid})
                 set({ isuploadlinkloading: false });
                 return true;
             } catch (err: any) {
@@ -256,7 +270,88 @@ const useFrameStore = create<FrameStore>()(
                 return false;
             }
 
-        }
+        },
+
+        chat: async (frameId: string, query: string, isRagEnabled: boolean) => {
+            set({ ischatloading: true, error: null });
+          
+            const token = getToken();
+            if (!token) {
+              set({ error: "No auth token found", ischatloading: false });
+              return false;
+            }
+          
+            try {
+                const userMessage: Message ={
+                    id: Date.now().toString(),
+                    role: "user",
+                    content: query,
+                    created_at: new Date(),
+                    frame_id: frameId
+
+                }
+                set((state): Partial<FrameStore> => ({
+                    messages: [...(state.messages ?? []), userMessage],
+                  }));
+
+                  const assistantId = (Date.now() + 1).toString();
+                  const assistantMessage: Message ={
+                    id: assistantId,
+                    role: "assistant",
+                    content: "",
+                    created_at: new Date(),
+                    frame_id: frameId
+                }
+                set((state): Partial<FrameStore> => ({
+                    messages: [...(state.messages ?? []), assistantMessage],
+                  }));
+              const eventSource = new EventSourcePolyfill(
+                `http://localhost:5000/api/v1/frame/${frameId}/chat?query=${encodeURIComponent(query)}&rag=${isRagEnabled}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                  },
+                }
+              );
+          
+              eventSource.onmessage = (event) => {
+                const chunk = event.data;
+                if (chunk === "done") {
+                  eventSource.close();
+                  set({ ischatloading: false });
+                  return;
+                }
+                console.log("Received chunk:", chunk);
+                set((state): Partial<FrameStore> => ({
+                  messages: state.messages?.map((msg) =>
+                    msg.id === assistantId
+                      ? { ...msg, content: msg.content + chunk} // append live
+                      : msg
+                  ),
+                }));
+              };
+              
+              
+          
+              eventSource.addEventListener("done",() =>{
+                eventSource.close();
+                set({ ischatloading: false });
+              })
+
+              eventSource.onerror = (err) => {
+                console.error("EventSource failed:", err);
+                eventSource.close();
+                set({ error: "Chat connection error.", ischatloading: false });
+              }
+                return true;
+            } catch (err: any) {
+              console.error(err);
+              set({ error: "Something went wrong.", ischatloading: false });
+              return false;
+            }
+          }
+          
+
     })
 )
 

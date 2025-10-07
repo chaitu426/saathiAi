@@ -13,7 +13,7 @@ export const user = pgTable('user', {
     password_hash: text('password_hash').notNull(),
     created_at: timestamp('created_at').defaultNow().notNull(),
     updated_at: timestamp('updated_at').defaultNow().notNull(),
-  });
+  }); 
 
   export const userDetails = pgTable('user_details', {
     id: uuid('id').primaryKey().defaultRandom(),

@@ -17,7 +17,7 @@ interface AuthStore {
   error: string | null;
 
   signup: (data: { username: string; email: string; password: string }) => Promise<boolean>;
-  login: (data: { email: string; password: string }) => Promise<boolean>;
+  login: (data: { email: string; password: string }) => Promise<any>;
   userdetails:(data: {course: string; branch: string; year: string, learning_goals: string}) => Promise<any>;
   logout: () => void;
 }
@@ -74,7 +74,7 @@ const useAuthStore = create<AuthStore>()(
              data
           );
           set({ user: res.data.user, token: res.data.token, loading: false });
-          return true;
+          return res;
         } catch (err: any) {
           let message = "Invalid credentials or server error.";
 

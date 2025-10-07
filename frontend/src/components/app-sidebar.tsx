@@ -12,6 +12,7 @@ import {
   Image,
   Link,
   Loader,
+  File as FileIcon,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -53,12 +54,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { motion } from "framer-motion";
 import useFrameStore from "@/stores/useFrameStore";
+import ProgressDisplay from "./chat/ProgUpdate";
 
 // Interfaces
 export interface Frame {
   id: string;
   title: string;
   description?: string;
+  materialCount?: string
   createdAt: Date;
   messageCount: number;
   materials: Material[];
@@ -81,7 +84,7 @@ export function AppSidebar() {
   const [newFrameDescription, setNewFrameDescription] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  const { frames, getFrames, isgetFramesloading, isaddFrameloading, isdeleteFrameloading, addFrame, deleteFrame } = useFrameStore();
+  const { frames, getFrames, isgetFramesloading, isaddFrameloading, isdeleteFrameloading, addFrame, deleteFrame, jobid } = useFrameStore();
 
   const isCollapsed = state === "collapsed";
   const isActive = (frameId: string) => currentPath === `/chat/${frameId}`;
@@ -203,7 +206,7 @@ export function AppSidebar() {
                         <SidebarMenuButton asChild>
                           <NavLink
                             to={`/chat/${frame.id}`}
-                            className={`flex items-center justify-center p-2 rounded-lg ${getNavCls(frame.id)}`}
+                            className={`flex items-center justify-center rounded-lg ${getNavCls(frame.id)}`}
                           >
                             <MessageSquare className="h-4 w-4" />
                           </NavLink>
@@ -228,35 +231,53 @@ export function AppSidebar() {
                                       </CardDescription>
                                     )}
                                   </NavLink>
+                                  <div className="flex items-center gap-2 py-2 px-2 w-28 rounded-xl bg-neutral-900/60 backdrop-blur-md border border-neutral-800/50 text-sm text-neutral-300">
+                                    <div className="flex items-center gap-1 text-neutral-400 text-sm">
+                                      {/* Files Count */}
+                                        <FileIcon className="w-4 h-4 text-neutral-500" />
+                                        <span className="text-neutral-300">{frame.materialCount || 0}</span>
+                                      </div>
+
+                                      {/* Divider Dot */}
+                                      <span className="w-1 h-1 rounded-full bg-neutral-700"></span>
+
+                                      {/* Messages Count */}
+                                      <div className="flex items-center gap-1">
+                                        <MessageSquare className="w-4 h-4 text-neutral-500" />
+                                        <span className="text-neutral-300">{frame.messageCount || 0}</span>
+                                      </div>
+                                    </div>
+
+
+                                  </div>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 text-zinc-500 hover:text-white"
+                                      >
+                                        <Edit2 className="h-3 w-3" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent
+                                      align="end"
+                                      className="bg-neutral-900  border border-zinc-800 rounded-lg shadow-lg"
+                                    >
+                                      <DropdownMenuItem className="text-zinc-300 hover:bg-zinc-800/70">
+                                        <Edit2 className="h-3 w-3 mr-2" />
+                                        Rename
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        className="text-red-400 hover:bg-red-400/10"
+                                        onClick={() => handleDeleteFrame(frame.id)}
+                                      >
+                                        {isdeleteFrameloading ? <Loader className="animate-spin h-3 w-3 mr-2" /> : <Trash2 className="h-3 w-3 mr-2" />}
+                                        Delete
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                 </div>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-6 w-6 text-zinc-500 hover:text-white"
-                                    >
-                                      <Edit2 className="h-3 w-3" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent
-                                    align="end"
-                                    className="bg-neutral-900  border border-zinc-800 rounded-lg shadow-lg"
-                                  >
-                                    <DropdownMenuItem className="text-zinc-300 hover:bg-zinc-800/70">
-                                      <Edit2 className="h-3 w-3 mr-2" />
-                                      Rename
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                      className="text-red-400 hover:bg-red-400/10"
-                                      onClick={() => handleDeleteFrame(frame.id)}
-                                    >
-                                      {isdeleteFrameloading ? <Loader className="animate-spin h-3 w-3 mr-2" /> : <Trash2 className="h-3 w-3 mr-2" />}
-                                      Delete
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
                             </CardContent>
                           </Card>
                         </motion.div>

@@ -8,6 +8,7 @@ import {webpageExtractor} from "../utils/webpageExtractor.js"
 import { eq } from "drizzle-orm";
 import { textSplitter } from "../utils/textSpliter.js";
 import { generateEmbeddings } from "../services/embeddingService.js";
+import { getIO } from "./socket.js";
 
 const QUEUE_NAME = "material-processing";
 
@@ -15,19 +16,30 @@ const materialWorker = new Worker(
   QUEUE_NAME,
   async (job) => {
     const { materialId, url, type, userId, frameId } = job.data;
+    const io = getIO();
+
+    const emitProgress = async (step:any, message:any) => {
+      await job.updateProgress({ step, message });
+      io.emit(`job-progress-${job.id}`, { step, message });
+    };
 
     try {
+      await emitProgress("started", "Processing started...");
       let text;
 
       if (type === "pdf") {
+        await emitProgress("extracting", "Extracting text");
         text = await extractPDF(url);
       } else if (type === "image") {
+        await emitProgress("ocr", "Running OCR");
         text = await runOCR(url);
       } else if (type === "YTLink") {
+        await emitProgress("yt", "Fetching YouTube");
         text = await ytextractor(url);
       } else if (type === "webpageLink") {
-        text =await webpageExtractor(url);
-      } 
+        await emitProgress("webpage", "Scraping webpage");
+        text = await webpageExtractor(url);
+      }
 
       //make sure text is not empty
       if (!text) {
@@ -35,10 +47,11 @@ const materialWorker = new Worker(
       }
 
       //split text into chunks and store in another table if needed
+      await emitProgress("splitting", "Splitting text");
       const docs = await textSplitter(text);
-      console.log(docs);
 
       //embeddings
+      await emitProgress("embedding", "creating embeddings");
       await generateEmbeddings(docs, userId, frameId, materialId, type);
 
       await db
@@ -48,14 +61,14 @@ const materialWorker = new Worker(
           embeddings: null, // or embeddingVector
         })
         .where(eq(study_material.id, materialId));
-
+        await emitProgress("done", "processed successfully!")
       console.log(`✅ Material ${materialId} processed successfully.`);
     } catch (err: any) {
       await db
         .update(study_material)
         .set({ processed_status: "failed" })
         .where(eq(study_material.id, materialId));
-
+      await emitProgress("failed", `Failed: ${err.message}`);
       console.error(`Processing failed for material ${materialId}:`, err);
       throw err; // rethrow so BullMQ marks it as failed
     }

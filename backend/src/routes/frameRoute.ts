@@ -16,7 +16,7 @@ frameRoute.get("/list",authenticateJWT, listFrames);
 
 frameRoute.get("/view/:frameId",authenticateJWT, viewFrame);
 
-frameRoute.post("/:frameId/chat", authenticateJWT, chatInFrame);
+frameRoute.get("/:frameId/chat", authenticateJWT, chatInFrame);
 
 // //we only call this route when user reload frame and opens the frame to build the convertation history
 frameRoute.get("/:frameId/massages", authenticateJWT, massagesInFrame);

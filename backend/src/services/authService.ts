@@ -3,8 +3,9 @@ import { findUserByEmail } from '../controllers/userController.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { db } from '../config/db.js';
-import { user } from '../db/schema.js';
+import { user, frame } from '../db/schema.js';
 import { environment } from '../config/environment.js';
+import { desc, eq } from 'drizzle-orm';
 
 const JWT_SECRET = environment.jwtsecret;
 if (!JWT_SECRET) {
@@ -33,10 +34,13 @@ export const loginService = async (input: AuthInput) => {
     { expiresIn: '1d' }
   );
 
+  const latestchat = await db.select().from(frame).where(eq(frame.user_id , existingUser.id)).orderBy(desc(frame.created_at)).limit(1);
+
+
   return {
     message: 'Login successful',
     token,
-    user: { id: existingUser.id,username: existingUser.username, email: existingUser.email }
+    user: { id: existingUser.id,username: existingUser.username, email: existingUser.email, latestchat: latestchat[0]?.id}
   };
 };
 

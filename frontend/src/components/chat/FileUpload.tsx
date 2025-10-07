@@ -47,7 +47,7 @@ export function FileUpload({ frameId, isOpen, onOpenChange, onMaterialAdd }: Fil
             onMaterialAdd(material);
             onOpenChange(false);
 
-            toast.success("File uploaded successfully", {
+            toast.success("File uploaded successfully, processing in background", {
                 position: "top-right",
                 autoClose: 5000,
                 theme: "dark",
@@ -158,7 +158,7 @@ export function FileUpload({ frameId, isOpen, onOpenChange, onMaterialAdd }: Fil
                                     disabled={isuploadfileloading}
                                     onClick={() => {
                                         if (fileInputRef.current) {
-                                            fileInputRef.current.accept = "image/*", "pdf";
+                                            fileInputRef.current.accept = "pdf";
                                             fileInputRef.current.onchange = (e) => {
                                                 const target = e.target as HTMLInputElement;
                                                 handleFileUpload(target.files);

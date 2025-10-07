@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Container from "@/components/global/container";
 import Icons from "@/components/global/icons";
 import { OrbitingCircles } from "@/components/ui/orbiting-circles";
@@ -16,6 +16,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +29,9 @@ export default function Login() {
         theme: "dark",
         transition: Bounce,
       });
+      console.log(success);
+      navigate(`/chat/${success.data.user.latestchat}`);
+
     } else {
       toast.error(useAuthStore.getState().error || "Login failed", {
         position: "top-right",

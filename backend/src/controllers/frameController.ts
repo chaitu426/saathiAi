@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import {frameSchema} from "../validator/frameValidator.js";
 import { addLinkStudyMaterialsToFrameService, addStudyMaterialsToFrameService, chatInFrameService, frameCreationService, frameDeletionService, frameListService , massagesInFrameService, singleFrameService} from '../services/frameService.js';
+import jwt from 'jsonwebtoken';
+import {environment} from "../config/environment.js";
+
+const JWT_SECRET = environment.jwtsecret;
 
 
 export const createFrame = async (req: Request, res: Response, next:NextFunction) => {
@@ -89,9 +93,13 @@ export const viewFrame = async (req: Request, res: Response, next:NextFunction) 
 
 
 export const chatInFrame = async (req: Request, res: Response, next: NextFunction) => {
+
+
   const userId = (req as any).user?.id;
+  
   if (!userId) {
     return res.status(401).json({ error: "Unauthorized" });
+    
   }
 
   const frameId = req.params.frameId;
@@ -99,10 +107,11 @@ export const chatInFrame = async (req: Request, res: Response, next: NextFunctio
     return res.status(400).json({ error: "Frame ID is required" });
   }
 
-  const { query } = req.body;
+  const query  = req.query.query;
   if (!query) {
     return res.status(400).json({ error: "Message is required" });
   }
+  const isRagEnabled = req.query.rag === 'true' ? true : false;
 
   try {
     // SSE headers
@@ -112,7 +121,7 @@ export const chatInFrame = async (req: Request, res: Response, next: NextFunctio
     res.flushHeaders?.();
 
     // Call service (async generator)
-    for await (const token of chatInFrameService(query, userId, frameId)) {
+    for await (const token of chatInFrameService(query as string, userId, frameId, isRagEnabled)) {
       res.write(`data: ${token}\n\n`);
     }
 

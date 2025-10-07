@@ -1,4 +1,4 @@
-import { GoogleGenerativeAIEmbeddings } from "@langchain/google-genai";
+import { OllamaEmbeddings } from "./ollamaEmbeddingModel.js";
 import { PineconeStore } from "@langchain/pinecone";
 import { Pinecone as PineconeClient } from "@pinecone-database/pinecone";
 import { v4 as uuidv4 } from "uuid";
@@ -10,7 +10,7 @@ export const generateEmbeddings = async (
   materialId: string,
   type: string,
 ) => {
-  // 1. Add metadata to each doc
+ 
   const enrichedDocs = docs.map((doc: any, i:any) => ({
     ...doc,
     metadata: {
@@ -25,22 +25,16 @@ export const generateEmbeddings = async (
     id: `${userId}_${frameId}_${materialId}_${i}_${uuidv4()}`,
   }));
 
-  //embedding model
-  const embeddings = new GoogleGenerativeAIEmbeddings({
-    modelName: "embedding-001",
-  });
+const embeddings = new OllamaEmbeddings("nomic-embed-text");
 
-  //Init Pinecone
   const pinecone = new PineconeClient();
   const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX!);
 
-  //Create a LangChain vector
   const vectorStore = await PineconeStore.fromExistingIndex(embeddings, {
     pineconeIndex,
     maxConcurrency: 5,
   });
 
-  //Store embeddings
   await vectorStore.addDocuments(enrichedDocs);
 
   console.log(
@@ -53,11 +47,9 @@ export const searchEmbeddings = async (
   query: string,
   userId: string,
   frameId: string,
-  materialId?: string // optional, if you want to narrow further
+  materialId?: string
 ) => {
-  const embeddings = new GoogleGenerativeAIEmbeddings({
-    modelName: "embedding-001",
-  });
+  const embeddings = new OllamaEmbeddings("nomic-embed-text");
 
   const pinecone = new PineconeClient();
   const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX!);
@@ -66,7 +58,6 @@ export const searchEmbeddings = async (
     pineconeIndex,
   });
 
-  // Build filter
   const filter: any = {
     user_id: userId,
     frame_id: frameId,
@@ -75,8 +66,9 @@ export const searchEmbeddings = async (
     filter.material_id = materialId;
   }
 
-  // Search top 5 chunks
+  // Search top 5 chanks
   const results = await vectorStore.similaritySearch(query, 3, filter);
+  console.log(results)
 
   return results;
 };
@@ -85,17 +77,15 @@ export const deleteEmbeddingsForMaterial = async (userId:string, frameId:string)
   const pinecone = new PineconeClient();
   const pineconeIndex = pinecone.Index(process.env.PINECONE_INDEX!);
 
-  // Build filter
   const filter: any = {
     user_id: userId,
     frame_id: frameId,
   };
 
-  // Delete vectors matching the filter
   await pineconeIndex.deleteMany({
     deleteAll: false,
     filter,
   });
 
-  console.log(`🗑️ Deleted embeddings for material ${userId} in frame ${frameId}`);
+  console.log(`Deleted embeddings for material ${userId} in frame ${frameId}`);
 }
