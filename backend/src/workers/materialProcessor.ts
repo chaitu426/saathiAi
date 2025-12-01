@@ -62,7 +62,7 @@ const materialWorker = new Worker(
         })
         .where(eq(study_material.id, materialId));
         await emitProgress("done", "processed successfully!")
-      console.log(`✅ Material ${materialId} processed successfully.`);
+      console.log(`Material ${materialId} processed successfully.`);
     } catch (err: any) {
       await db
         .update(study_material)

@@ -70,11 +70,7 @@ export function ChatInterface({ frameId }: ChatInterfaceProps) {
         <AnimatePresence>
           {messages?.length === 0 &&(
             <>
-             
-            <div className=" items-center justify-center overflow-visible">
-              <Ripple />
-            </div>
-            <div className="flex items-center justify-center pt-64">{`Wellcome chaitu`}</div>
+            <div className="flex items-center justify-center pt-64">{`Wellcome to sarthi`}</div>
             </>
           )}
           {isgetMessagesloading ? (

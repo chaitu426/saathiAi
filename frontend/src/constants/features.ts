@@ -8,26 +8,30 @@ import {
 
 export const FEATURES = [
     {
-        title: "Enhance User Experience",
-        description: "Efficiently manage user data and interactions with advanced AI tools",
+        title: "Chat With Your PDFs",
+    description:
+      "Upload textbooks, notes, or assignments and instantly ask questions about them. Get summaries, explanations, and insights powered by AI.",
         icon: WandSparklesIcon,
         image: "./image2.png",
     },
     {
-        title: "Comprehensive Insights",
-        description: "Gain deep insights into your audience and campaign performance",
+        title: "YouTube Video Understanding",
+    description:
+      "Paste any YouTube link and get an AI-powered breakdown. Ask questions, get timestamps, and understand long lectures in minutes.",
         icon: ChartColumnBigIcon,
         image: "./image3.png",
     },
     {
-        title: "Data Management",
-        description: "Manage your data with ease and efficiency",
+        title: "Smart Study Workspace",
+    description:
+      "Split your screen to view PDFs or videos side-by-side with the chat. Stay focused, organized, and productive.",
         icon: DatabaseIcon,
         image: "./image2.png",
     },
     {
-        title: "Real-Time Analytics",
-        description: "Track and analyze your marketing performance in real-time",
+        title: "AI Summaries & Notes",
+    description:
+      "Turn long documents into short summaries or structured notes. Perfect for revision and exam prep.",
         icon: TrendingUpIcon,
         image: "./image3.png",
     }

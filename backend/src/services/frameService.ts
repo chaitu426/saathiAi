@@ -311,3 +311,23 @@ const getContextForChat = async (frameId: string) => {
     content: m.content,
   }));
 };
+
+export const frameStudyMaterialsService = async(frameId:string, userId:string)=>{
+  try{
+    const materials =  await db
+    .select({
+      id: study_material.id,
+      title: study_material.title,
+      type: study_material.type,
+      url: study_material.url,
+      processed_status: study_material.processed_status,
+      createdAt: study_material.created_at,
+    })
+    .from(study_material)
+    .where(and(eq(study_material.frame_id, frameId), eq(study_material.user_id, userId)));
+
+    return materials;
+  }catch{
+    throw new Error("Failed to fetch study materials for frame");
+  }
+}

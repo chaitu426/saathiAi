@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import {frameSchema} from "../validator/frameValidator.js";
-import { addLinkStudyMaterialsToFrameService, addStudyMaterialsToFrameService, chatInFrameService, frameCreationService, frameDeletionService, frameListService , massagesInFrameService, singleFrameService} from '../services/frameService.js';
+import { addLinkStudyMaterialsToFrameService, addStudyMaterialsToFrameService, chatInFrameService, frameCreationService, frameDeletionService, frameListService , frameStudyMaterialsService, massagesInFrameService, singleFrameService} from '../services/frameService.js';
 import jwt from 'jsonwebtoken';
 import {environment} from "../config/environment.js";
 
@@ -211,6 +211,28 @@ export const addLinkStudyMaterialsToFrame = async (req: Request, res: Response, 
         res.status(200).json(result);
     } catch (error) {
         next(error);
+    }
+}
+
+export const userFramesStudyMaterials = async (req: Request, res: Response, next:NextFunction) => {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const frameId = req.params.frameId;
+    if(!frameId){
+        return res.status(400).json({error: "Frame ID is required"});
+    }
+    try{
+        // Call the service to get study materials for the frame
+        const result = await frameStudyMaterialsService(frameId, userId);
+        if(!result){
+            return res.status(404).json({error: "No study materials found"});
+        }
+        res.status(200).json(result);   
+    }
+    catch(err){
+        next(err);
     }
 }
 

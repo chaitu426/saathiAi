@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {Link} from "react-router-dom";
+import { Link } from "react-router-dom";
 import Container from "../global/container";
 import { Button } from "../ui/button";
 import Particles from "../ui/particles";
@@ -41,11 +41,14 @@ const CTA = () => {
                         }}
                     />
                     <h2 className="text-3xl md:text-5xl lg:text-6xl font-heading font-medium !leading-snug">
-                        Ready to boost your <br /> <span className="font-subheading italic">marketing</span> ?
+                        Ready to study faster with <br /><span className="font-subheading italic">AI?</span>
                     </h2>
                     <p className="text-sm md:text-lg text-center text-accent-foreground/80 max-w-2xl mx-auto mt-4">
-                        Transform your marketing with AI-powered automation. Create campaigns faster, generate better content <span className="hidden lg:inline">and make smarter decisions in minutes.</span>
+                        Turn hours of reading into minutes. Let AI summarize your PDFs, explain videos,
+                        and answer your questions instantly—all in one place.
                     </p>
+
+
                     <Link to="#pricing" className="mt-8">
                         <Button size="lg">
                             Let&apos;s get started

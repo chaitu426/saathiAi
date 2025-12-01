@@ -1,5 +1,5 @@
 import express from "express";
-import { addLinkStudyMaterialsToFrame, addStudyMaterialsToFrame, chatInFrame, createFrame, deleteFrame, listFrames, massagesInFrame, viewFrame } from "../controllers/frameController.js";
+import { addLinkStudyMaterialsToFrame, addStudyMaterialsToFrame, chatInFrame, createFrame, deleteFrame, listFrames, massagesInFrame, userFramesStudyMaterials, viewFrame } from "../controllers/frameController.js";
 import {authenticateJWT} from "../middlewares/authMiddleware.js";
 import multer from "multer";
 
@@ -26,6 +26,8 @@ frameRoute.post("/:frameId/materials", authenticateJWT, upload.array("file",3), 
 
 //Route to take yt video link and website link to add study materials to a frame
 frameRoute.post("/:frameId/materials/link", authenticateJWT, addLinkStudyMaterialsToFrame);
+
+frameRoute.get("/docs/:frameId", authenticateJWT, userFramesStudyMaterials);
 
 
 

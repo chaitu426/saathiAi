@@ -50,29 +50,26 @@ const Hero = () => {
                                 <span className="px-2 py-[0.5px] h-[18px] tracking-wide flex items-center justify-center rounded-full bg-gradient-to-r from-sky-400 to-blue-600 text-[9px] font-medium mr-2 text-white">
                                     NEW
                                 </span>
-                                Explore the 2024 recap
+                                Explore sarthiAI
                             </span>
                         </button>
                     </Container>
                     <Container delay={0.15}>
-                        <h1 className="text-4xl md:text-4xl lg:text-7xl font-bold text-center !leading-tight max-w-5xl mx-auto">
-                            Transform your {" "}
-                            <span className="">
-                                marketing {" "}
-                            </span>
-                            with AI Precision
-                        </h1>
+                    <h1 className="text-4xl md:text-4xl lg:text-7xl font-bold text-center !leading-tight max-w-5xl mx-auto">
+  Turn your <span className="">PDFs, notes & videos</span> into instant answers
+</h1>
+
                     </Container>
                     <Container delay={0.2}>
                         <p className="max-w-xl mx-auto mt-2 text-base lg:text-lg text-center text-muted-foreground">
-                            AI-powered automation and insights to maximize your campaigns and grow your brand.
+                        AI-powered explanations and contextual insights to turn messy study material into meaningful knowledge.
                         </p>
                     </Container>
                     <Container delay={0.25} className="z-20">
                         <div className="flex items-center justify-center mt-6 gap-x-4">
                             <Link to="#" className="flex items-center gap-2 group">
                                 <Button size="lg">
-                                    Start Free Trial
+                                    Get Started
                                     <ArrowRightIcon className="size-4 group-hover:translate-x-1 transition-all duration-300" />
                                 </Button>
                             </Link>

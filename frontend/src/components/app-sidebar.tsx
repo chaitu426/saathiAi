@@ -13,6 +13,7 @@ import {
   Link,
   Loader,
   File as FileIcon,
+  ChevronDown,
 } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import {
@@ -55,6 +56,13 @@ import {
 import { motion } from "framer-motion";
 import useFrameStore from "@/stores/useFrameStore";
 import ProgressDisplay from "./chat/ProgUpdate";
+import { ViewerModal } from "./global/pdfview";
+import { YouTubeViewerModal } from "./global/ytviwer";
+import { pdfjs } from "react-pdf";
+
+pdfjs.GlobalWorkerOptions.workerSrc =
+  `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+
 
 // Interfaces
 export interface Frame {
@@ -84,7 +92,7 @@ export function AppSidebar() {
   const [newFrameDescription, setNewFrameDescription] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  const { frames, getFrames, isgetFramesloading, isaddFrameloading, isdeleteFrameloading, addFrame, deleteFrame, jobid } = useFrameStore();
+  const { frames, getFrames, isgetFramesloading, isaddFrameloading, isdeleteFrameloading, addFrame, deleteFrame, jobid, docs, Materials, isdocsloading } = useFrameStore();
 
   const isCollapsed = state === "collapsed";
   const isActive = (frameId: string) => currentPath === `/chat/${frameId}`;
@@ -116,6 +124,10 @@ export function AppSidebar() {
     await deleteFrame(frameId);
   };
 
+  const renderMaterial = async (frameId: string) => {
+    await docs(frameId);
+  }
+
   return (
     <Sidebar
       className={`${isCollapsed ? "w-14" : "w-80"
@@ -126,7 +138,7 @@ export function AppSidebar() {
       <SidebarHeader className="border-b border-zinc-800 p-4">
         {!isCollapsed && (
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-white">StudyBuddy</h2>
+            <h2 className="text-lg font-semibold text-white">SarthiAI</h2>
             <SidebarTrigger className="rounded-md hover:bg-zinc-800/60 transition-colors" />
           </div>
         )}
@@ -217,7 +229,7 @@ export function AppSidebar() {
                           whileTap={{ scale: 0.99 }}
                           className={`rounded-xl overflow-hidden border border-zinc-800 ${getNavCls(frame.id)}`}
                         >
-                          <Card className="bg-neutral-900/70 border-none shadow-sm hover:shadow-md transition-all">
+                          <Card className="bg-neutral-900/70 border-none shadow-sm hover:shadow-md">
                             <CardContent className="p-3">
                               <div className="flex items-start justify-between mb-2">
                                 <div className="flex-1 min-w-0">
@@ -231,53 +243,108 @@ export function AppSidebar() {
                                       </CardDescription>
                                     )}
                                   </NavLink>
-                                  <div className="flex items-center gap-2 py-2 px-2 w-28 rounded-xl bg-neutral-900/60 backdrop-blur-md border border-neutral-800/50 text-sm text-neutral-300">
-                                    <div className="flex items-center gap-1 text-neutral-400 text-sm">
-                                      {/* Files Count */}
-                                        <FileIcon className="w-4 h-4 text-neutral-500" />
-                                        <span className="text-neutral-300">{frame.materialCount || 0}</span>
-                                      </div>
 
-                                      {/* Divider Dot */}
-                                      <span className="w-1 h-1 rounded-full bg-neutral-700"></span>
-
-                                      {/* Messages Count */}
-                                      <div className="flex items-center gap-1">
-                                        <MessageSquare className="w-4 h-4 text-neutral-500" />
-                                        <span className="text-neutral-300">{frame.messageCount || 0}</span>
-                                      </div>
-                                    </div>
-
-
-                                  </div>
-                                  <DropdownMenu>
+                                  <ProgressDisplay jobId={jobid} />
+                                  <DropdownMenu onOpenChange={() => renderMaterial(frame.id)}>
                                     <DropdownMenuTrigger asChild>
                                       <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-6 w-6 text-zinc-500 hover:text-white"
+                                        className="px-6 h-6 w-6 text-zinc-500 hover:text-white"
                                       >
-                                        <Edit2 className="h-3 w-3" />
+                                        <div className="flex items-center gap-2">
+                                          <p className="text-xs">Docs</p>
+                                          <ChevronDown className="h-3 w-3" />
+                                        </div>
                                       </Button>
                                     </DropdownMenuTrigger>
+
                                     <DropdownMenuContent
                                       align="end"
-                                      className="bg-neutral-900  border border-zinc-800 rounded-lg shadow-lg"
+                                      className="bg-neutral-900 border border-zinc-800 rounded-lg shadow-lg w-56 p-1"
                                     >
-                                      <DropdownMenuItem className="text-zinc-300 hover:bg-zinc-800/70">
-                                        <Edit2 className="h-3 w-3 mr-2" />
-                                        Rename
-                                      </DropdownMenuItem>
+
                                       <DropdownMenuItem
-                                        className="text-red-400 hover:bg-red-400/10"
-                                        onClick={() => handleDeleteFrame(frame.id)}
+                                        className="text-red-400 hover:bg-red-400/10 font-medium"
                                       >
-                                        {isdeleteFrameloading ? <Loader className="animate-spin h-3 w-3 mr-2" /> : <Trash2 className="h-3 w-3 mr-2" />}
-                                        Delete
+                                        Materials: {Materials.length}
                                       </DropdownMenuItem>
+
+                                      {Materials.map((material) => (
+                                        <DropdownMenuItem
+                                          key={material.id}
+                                          className="flex items-center justify-between gap-2 hover:bg-zinc-800 cursor-pointer"
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            {material.type === "pdf" && <FileText className="h-3 w-3" />}
+                                            {material.type === "image" && <Image className="h-3 w-3" />}
+                                            {material.type === "YTLink" && <Video className="h-3 w-3" />}
+                                            {material.type === "webpageLink" && <Link className="h-3 w-3" />}
+                                            <span className="truncate max-w-[90px]">{material.title}</span>
+                                          </div>
+
+                                          {material.type === "YTLink" ? (
+                                            <YouTubeViewerModal
+                                              url={material.url}
+                                              trigger={
+                                                <Button
+                                                  size="sm"
+                                                  variant="ghost"
+                                                  className="text-blue-400 hover:text-white hover:bg-blue-500/20 px-2 py-0 h-5"
+                                                  onClick={(e) => e.stopPropagation()}
+                                                >
+                                                  Open
+                                                </Button>
+                                              }
+                                            />
+                                          ) : (
+                                            <ViewerModal
+                                              url={material.url}
+                                              type={material.type === "image" ? "image" : "pdf"}
+                                              trigger={
+                                                <Button
+                                                  size="sm"
+                                                  variant="ghost"
+                                                  className="text-blue-400 hover:text-white hover:bg-blue-500/20 px-2 py-0 h-5"
+                                                  onClick={(e) => e.stopPropagation()}
+                                                >
+                                                  Open
+                                                </Button>
+                                              }
+                                            />
+                                          )}
+
+                                        </DropdownMenuItem>
+                                      ))}
                                     </DropdownMenuContent>
                                   </DropdownMenu>
+
+
                                 </div>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 text-zinc-500 hover:text-white"
+                                    >
+                                      <Edit2 className="h-3 w-3" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent
+                                    align="end"
+                                    className="bg-neutral-900  border border-zinc-800 rounded-lg shadow-lg"
+                                  >
+                                    <DropdownMenuItem
+                                      className="text-red-400 hover:bg-red-400/10"
+                                      onClick={() => handleDeleteFrame(frame.id)}
+                                    >
+                                      {isdeleteFrameloading ? <Loader className="animate-spin h-3 w-3 mr-2" /> : <Trash2 className="h-3 w-3 mr-2" />}
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
                             </CardContent>
                           </Card>
                         </motion.div>

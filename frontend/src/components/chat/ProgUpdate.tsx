@@ -2,10 +2,10 @@
 import React, { useEffect, useState } from "react";
 import io from "socket.io-client";
 
-const socket = io("http://localhost:5000", { transports: ["websocket"] }); // initialize once
+const socket = io("http://localhost:5001", { transports: ["websocket"] }); // initialize once
 
 export default function ProgressDisplay({ jobId }) {
-  const [status, setStatus] = useState("...");
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
     socket.on(`job-progress-${jobId}`, (data) => {

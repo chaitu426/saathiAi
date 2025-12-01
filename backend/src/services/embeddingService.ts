@@ -38,7 +38,7 @@ const embeddings = new OllamaEmbeddings("nomic-embed-text");
   await vectorStore.addDocuments(enrichedDocs);
 
   console.log(
-    `✅ Stored ${docs.length} docs for user=${userId}, chat=${frameId}, type=${type}`
+    `Stored ${docs.length} docs for user=${userId}, chat=${frameId}, type=${type}`
   );
 };
 

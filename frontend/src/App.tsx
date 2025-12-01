@@ -13,6 +13,9 @@ import NotFound from "./pages/notFound";
 import Navbar from "./components/landingPage/navbar";
 import { ToastContainer } from "react-toastify";
 import DetailsPage from "./pages/detailsPage";
+import { pdfjs } from "react-pdf";
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.js`;
+
 
 const queryClient = new QueryClient();
 
