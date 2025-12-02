@@ -9,6 +9,7 @@ import { eq } from "drizzle-orm";
 import { textSplitter } from "../utils/textSpliter.js";
 import { generateEmbeddings } from "../services/embeddingService.js";
 import { getIO } from "./socket.js";
+import { llmforSummaryService } from "../services/llmService.js";
 
 const QUEUE_NAME = "material-processing";
 
@@ -54,10 +55,14 @@ const materialWorker = new Worker(
       await emitProgress("embedding", "creating embeddings");
       await generateEmbeddings(docs, userId, frameId, materialId, type);
 
+      //create ai generated summary
+      const aiSummary = await llmforSummaryService(text);
+
       await db
         .update(study_material)
         .set({
           processed_status: "completed",
+          ai_generated_summary: aiSummary,
           embeddings: null, // or embeddingVector
         })
         .where(eq(study_material.id, materialId));

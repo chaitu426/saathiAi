@@ -10,6 +10,7 @@ export const llmService = async (
   query: string,
   context: string = "No relevant context retrieved.",
   history: HistoryMessage[] = [],
+  aiSummary: any,
   onToken?: (token: string) => void,        // callback for live tokens
   onEvent?: (event: string, payload?: any) => void // event tracing callback
 ) => {
@@ -64,7 +65,12 @@ You are a helpful AI assistant that provides well-formatted responses using Mark
 
 ---
 ### Context Snippets
+
+## this is context from vector db: 
 ${context}
+
+## this is context from ai generated summary for each document student uploaded like ytvedio, pdf, image only take context form relevent query:
+${aiSummary}
   `);
 
   // Map history into LangChain messages
@@ -103,3 +109,23 @@ ${context}
 
   return fullText;
 };
+
+
+export const llmforSummaryService = async (test : string) => {
+  const model = new ChatGoogleGenerativeAI({
+    model: "gemini-2.0-flash",
+    temperature: 0.1,
+  });
+
+  const systemMessage = new SystemMessage(`
+You are an expert at summarizing text concisely.
+Please provide a concise summary of the following text:
+
+`);
+
+  const userMessage = new HumanMessage(test);
+  
+  const response = await model.invoke([systemMessage, userMessage]);
+
+  return response.text;
+}

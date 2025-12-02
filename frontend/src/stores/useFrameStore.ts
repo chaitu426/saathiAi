@@ -25,6 +25,7 @@ interface Material {
   title: string,
   type: string,
   url: string,
+  ai_summary: string
   processed_status: string,
   created_at: Date
 }

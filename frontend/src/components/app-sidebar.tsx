@@ -59,6 +59,8 @@ import ProgressDisplay from "./chat/ProgUpdate";
 import { ViewerModal } from "./global/pdfview";
 import { YouTubeViewerModal } from "./global/ytviwer";
 import { pdfjs } from "react-pdf";
+import { FileCheckIcon, FileX, FileClock } from 'lucide-react';
+import { useVideoPanelStore } from "@/stores/videoPanelStore";
 
 pdfjs.GlobalWorkerOptions.workerSrc =
   `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
@@ -91,7 +93,7 @@ export function AppSidebar() {
   const [newFrameTitle, setNewFrameTitle] = useState("");
   const [newFrameDescription, setNewFrameDescription] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-
+  const openPanel = useVideoPanelStore((s) => s.openPanel);
   const { frames, getFrames, isgetFramesloading, isaddFrameloading, isdeleteFrameloading, addFrame, deleteFrame, jobid, docs, Materials, isdocsloading } = useFrameStore();
 
   const isCollapsed = state === "collapsed";
@@ -244,7 +246,7 @@ export function AppSidebar() {
                                     )}
                                   </NavLink>
 
-                                  <ProgressDisplay jobId={jobid} />
+                                  {/* <ProgressDisplay jobId={jobid} /> */}
                                   <DropdownMenu onOpenChange={() => renderMaterial(frame.id)}>
                                     <DropdownMenuTrigger asChild>
                                       <Button
@@ -281,37 +283,34 @@ export function AppSidebar() {
                                             {material.type === "YTLink" && <Video className="h-3 w-3" />}
                                             {material.type === "webpageLink" && <Link className="h-3 w-3" />}
                                             <span className="truncate max-w-[90px]">{material.title}</span>
+                                            {material.processed_status === "completed" && <FileCheckIcon className="h-3 w-3 text-green-400" />}
+                                            {material.processed_status === "failed" && <FileX className="h-3 w-3 text-red-400" />}
+                                            {material.processed_status === "pending" && <FileClock className="h-3 w-3 text-yellow-400" />}
                                           </div>
 
                                           {material.type === "YTLink" ? (
-                                            <YouTubeViewerModal
-                                              url={material.url}
-                                              trigger={
                                                 <Button
                                                   size="sm"
                                                   variant="ghost"
                                                   className="text-blue-400 hover:text-white hover:bg-blue-500/20 px-2 py-0 h-5"
-                                                  onClick={(e) => e.stopPropagation()}
+                                                  onClick={() =>
+                                                    openPanel(material.url, material.type, material.ai_summary)
+                                                  }
                                                 >
                                                   Open
                                                 </Button>
-                                              }
-                                            />
                                           ) : (
-                                            <ViewerModal
-                                              url={material.url}
-                                              type={material.type === "image" ? "image" : "pdf"}
-                                              trigger={
+                                            
                                                 <Button
                                                   size="sm"
                                                   variant="ghost"
                                                   className="text-blue-400 hover:text-white hover:bg-blue-500/20 px-2 py-0 h-5"
-                                                  onClick={(e) => e.stopPropagation()}
+                                                  onClick={() =>
+                                                    openPanel(material.url, material.type, material.ai_summary)
+                                                  }
                                                 >
                                                   Open
                                                 </Button>
-                                              }
-                                            />
                                           )}
 
                                         </DropdownMenuItem>
@@ -359,7 +358,7 @@ export function AppSidebar() {
 
         {/* Settings */}
         {!isCollapsed && (
-          <div className="mt-auto pt-2 border-t border-zinc-800">
+          <div className="mt-auto  border-zinc-800 fixed bottom-0 w-full bg-neutral-950 pb-3">
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>

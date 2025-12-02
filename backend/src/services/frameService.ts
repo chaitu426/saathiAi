@@ -159,6 +159,7 @@ export const addStudyMaterialsToFrameService = async (
         url: uploadResult.url,
         imagekit_id: uploadResult.fileId,
         processed_status: "pending",
+        ai_generated_summary: null,
         embeddings: null,
       })
       .returning();
@@ -212,6 +213,7 @@ export const addLinkStudyMaterialsToFrameService = async (
         url: link,
         imagekit_id: null,
         processed_status: "pending",
+        ai_generated_summary: null,
         embeddings: null,
       })
       .returning();
@@ -257,10 +259,14 @@ export const chatInFrameService = async function* (
 
   const history = await getContextForChat(frameId);
 
+
   // Retrieval (if needed)
   let contextText = "";
+  let aiSummary;
   if (canRetrieve) {
     if (shouldRetrieve(query)) {
+      aiSummary = getaiGeneratedSummary(userId, frameId)
+
       const context = await searchEmbeddings(query, userId, frameId);
       contextText = `Here are the relevant study material snippets:\n${context
         .map((c) => c.pageContent)
@@ -272,7 +278,7 @@ export const chatInFrameService = async function* (
 
   // Call streaming LLM
   let fullAnswer = "";
-  for await (const chunk of await llmService(query, contextText, history)) {
+  for await (const chunk of await llmService(query, contextText, history, aiSummary)) {
     fullAnswer += chunk;
     yield chunk; // stream out partials
   }
@@ -312,6 +318,25 @@ const getContextForChat = async (frameId: string) => {
   }));
 };
 
+const getaiGeneratedSummary = async(userId:string, frameId: string)=>{
+  const material = await db
+  .select({
+    title: study_material.title,
+    ai_generated_summary: study_material.ai_generated_summary,
+  })
+  .from(study_material)
+  .where(and(eq(study_material.frame_id, frameId), eq(study_material.user_id, userId)))
+
+  let finalSummary = "";
+  material.forEach((m)=>{
+    if(m.ai_generated_summary){
+      finalSummary += `Title: ${m.title}\nSummary: ${m.ai_generated_summary}\n\n`;
+    }
+  })
+  console.log("Final AI Generated Summary: ", finalSummary);
+  return finalSummary;
+}
+
 export const frameStudyMaterialsService = async(frameId:string, userId:string)=>{
   try{
     const materials =  await db
@@ -321,6 +346,7 @@ export const frameStudyMaterialsService = async(frameId:string, userId:string)=>
       type: study_material.type,
       url: study_material.url,
       processed_status: study_material.processed_status,
+      ai_summary: study_material.ai_generated_summary,
       createdAt: study_material.created_at,
     })
     .from(study_material)

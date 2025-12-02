@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Link } from "react-router-dom";
@@ -26,7 +26,10 @@ const components: Partial<Components> = {
     // Inline code
     if (!text.includes("\n")) {
       return (
-        <code className={cn(className, "px-1 py-0.5 rounded bg-muted")} {...props}>
+        <code
+          className={cn(className, "px-1 py-0.5 rounded bg-muted")}
+          {...props}
+        >
           {text}
         </code>
       );
@@ -93,46 +96,34 @@ const components: Partial<Components> = {
     <TableCell className="p-3 border-t border-border align-top">{children}</TableCell>
   ),
   th: ({ children }) => (
-    <TableHead className="p-3 text-foreground font-medium bg-muted/50">{children}</TableHead>
+    <TableHead className="p-3 text-foreground font-medium bg-muted/50">
+      {children}
+    </TableHead>
   ),
 };
 
 const remarkPlugins = [remarkGfm];
 
-// --- Streaming-aware Markdown component (like ChatGPT) ---
-const StreamingMarkdown = ({ children }: { children: string }) => {
-  const [displayed, setDisplayed] = useState(children);
-  const [renderKey, setRenderKey] = useState(0);
+const Markdown = ({ children }: { children: string }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const handle = setTimeout(() => {
-      setDisplayed(children);
-      setRenderKey((k) => k + 1);
-    }, 80);
-
-    return () => clearTimeout(handle);
-  }, [children]);
-
-  // Auto-scroll on stream (ChatGPT-like)
+  // auto-scroll when chunk updates
   useEffect(() => {
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  }, [displayed]);
+  }, [children]);
 
   return (
     <div
       ref={containerRef}
       className="prose prose-neutral dark:prose-invert w-full max-w-none leading-relaxed text-sm sm:text-base"
     >
-      <ReactMarkdown key={renderKey} remarkPlugins={remarkPlugins} components={components}>
-        {displayed}
+      <ReactMarkdown remarkPlugins={remarkPlugins} components={components}>
+        {children}
       </ReactMarkdown>
     </div>
   );
 };
-
-const Markdown = memo(StreamingMarkdown, (prev, next) => prev.children === next.children);
 
 export default Markdown;

@@ -54,7 +54,6 @@
     background: hsl(var(--background));
     color: hsl(var(--foreground));
     margin: 0;
-    line-height: 1.6;
     font-family: 'Inter', system-ui, sans-serif;
   }
 }
@@ -187,3 +186,28 @@
 
 
 
+
+
+* {
+  scrollbar-width: thin;              /* Firefox */
+  scrollbar-color: #4b4b4b #1a1a1a;   /* thumb | track */
+}
+
+/* Chrome, Edge, Safari */
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #1a1a1a;   /* dark track */
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #4b4b4b;   /* medium gray thumb */
+  border-radius: 8px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #6b6b6b;   /* slightly lighter on hover */
+}

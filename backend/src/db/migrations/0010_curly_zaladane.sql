@@ -1,0 +1,1 @@
+ALTER TABLE "study_material" ADD COLUMN "ai_generated_summary" text;
