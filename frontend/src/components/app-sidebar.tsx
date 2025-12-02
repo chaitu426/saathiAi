@@ -56,8 +56,6 @@ import {
 import { motion } from "framer-motion";
 import useFrameStore from "@/stores/useFrameStore";
 import ProgressDisplay from "./chat/ProgUpdate";
-import { ViewerModal } from "./global/pdfview";
-import { YouTubeViewerModal } from "./global/ytviwer";
 import { pdfjs } from "react-pdf";
 import { FileCheckIcon, FileX, FileClock } from 'lucide-react';
 import { useVideoPanelStore } from "@/stores/videoPanelStore";
@@ -86,7 +84,7 @@ export interface Material {
 
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state ,setOpen } = useSidebar();
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -293,8 +291,10 @@ export function AppSidebar() {
                                                   size="sm"
                                                   variant="ghost"
                                                   className="text-blue-400 hover:text-white hover:bg-blue-500/20 px-2 py-0 h-5"
-                                                  onClick={() =>
-                                                    openPanel(material.url, material.type, material.ai_summary)
+                                                  onClick={() =>{
+                                                    openPanel(material.url, material.type, material.ai_summary);
+                                                    setOpen(false)
+                                                  }
                                                   }
                                                 >
                                                   Open
@@ -305,8 +305,10 @@ export function AppSidebar() {
                                                   size="sm"
                                                   variant="ghost"
                                                   className="text-blue-400 hover:text-white hover:bg-blue-500/20 px-2 py-0 h-5"
-                                                  onClick={() =>
-                                                    openPanel(material.url, material.type, material.ai_summary)
+                                                  onClick={() =>{
+                                                    openPanel(material.url, material.type, material.ai_summary);
+                                                    setOpen(false)
+                                                  }
                                                   }
                                                 >
                                                   Open

@@ -159,8 +159,6 @@ export const addStudyMaterialsToFrameService = async (
         url: uploadResult.url,
         imagekit_id: uploadResult.fileId,
         processed_status: "pending",
-        ai_generated_summary: null,
-        embeddings: null,
       })
       .returning();
 
@@ -213,8 +211,6 @@ export const addLinkStudyMaterialsToFrameService = async (
         url: link,
         imagekit_id: null,
         processed_status: "pending",
-        ai_generated_summary: null,
-        embeddings: null,
       })
       .returning();
 

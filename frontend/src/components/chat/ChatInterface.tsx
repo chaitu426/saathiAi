@@ -267,6 +267,11 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/
 import { useVideoPanelStore } from "@/stores/videoPanelStore";
 import { X, ZoomIn, ZoomOut, Download, ArrowLeft } from "lucide-react";
 import { Document, Page } from "react-pdf";
+import { pdfjs } from "react-pdf";
+import { ScrollArea } from "../ui/scroll-area";
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+
 
 export interface ChatMessage {
   id: string;
@@ -288,6 +293,9 @@ export function ChatInterface({ frameId }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const { showPanel, panelUrl, closePanel, showType, aiSummary } = useVideoPanelStore();
+  const [showSummary, setShowSummary] = useState(true);
+  const [theaterMode, setTheaterMode] = useState(false);
+  const [pdfZoom, setPdfZoom] = useState(1);
   const {
     getMessages,
     isgetMessagesloading,
@@ -329,65 +337,182 @@ export function ChatInterface({ frameId }: ChatInterfaceProps) {
 
 
   return (
-    <div className="flex h-screen w-full overflow-hidden">
+    <div className="flex h-screen w-full ">
       <PanelGroup autoSaveId="example" direction="horizontal">
 
         {showPanel &&
           <Panel defaultSize={25}>
-            <div
-              className=" flex flex-1 flex-col overflow-y-auto bg-neutral-900 border-r border-neutral-800 h-full"
-            >
-              <div className="w-full h-full bg-black">
-                <button className="bg-zinc-800 w-14 justify-center content-center hover:bg-zinc-900 rounded-full text-white m-4"
-                  onClick={() =>
-                    closePanel()
-                  }
+          <div className="flex flex-col h-full bg-neutral-950 border-r border-neutral-800">
+        
+            {/* Top Bar */}
+            <div className="sticky top-0 flex items-center justify-between px-4 py-3
+              bg-neutral-950 backdrop-blur-md border-b border-neutral-800 shadow-sm">
+              <button
+                onClick={closePanel}
+                className="px-3 py-1 text-xs rounded-full bg-neutral-800 hover:bg-neutral-700
+                text-neutral-300 transition"
+              >
+                Close
+              </button>
+        
+              {/* Right actions */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => navigator.clipboard.writeText(panelUrl)}
+                  className="px-3 py-1 text-xs rounded-full bg-neutral-800 hover:bg-neutral-700
+                text-neutral-300 transition"
                 >
-                  close
+                  Copy Link
                 </button>
-                {showType == "YTLink" ? (
+                <a
+                  href={panelUrl}
+                  target="_blank"
+                  className="px-3 py-1 text-xs rounded-full bg-neutral-800 hover:bg-neutral-700
+                text-neutral-300 transition"
+                >
+                  Open
+                </a>
+              </div>
+            </div>
+        
+            {/* Main Content */}
+            <div className="flex-1 overflow-y-auto custom-scroll bg-neutral-950 relative">
+        
+              {/* LOADING SKELETON */}
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="animate-pulse h-10 w-10 rounded-full bg-neutral-700"></div>
+                </div>
+              )}
+        
+              {showType === "YTLink" ? (
+                <div className="p-4">
+                  {/* Video Header Tools */}
+                  <div className="flex justify-between mb-2">
+                    <button
+                      className="text-sm text-neutral-400 hover:text-neutral-200"
+                      onClick={() => setTheaterMode(!theaterMode)}
+                    >
+                      {theaterMode ? "Exit Theater" : "Theater Mode"}
+                    </button>
+                  </div>
+        
                   <iframe
-                    className="w-full h-[400px] p-4"
+                    className={`w-full rounded-xl border border-neutral-800 shadow-md transition-all 
+                      ${theaterMode ? "h-[600px]" : "h-[360px]"}`}
                     src={`https://www.youtube.com/embed/${panelUrl.split("/")[3]}?rel=0&modestbranding=1`}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
+                    onLoad={() => setIsLoading(false)}
                   />
-                ) : (
-                  <>
-                    <div className="flex justify-between items-center px-4 py-3 border-b border-neutral-800 bg-neutral-900">
-                      <div className="flex items-center gap-3">
-                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setScale(s => s + 0.1)}>
-                          <ZoomIn className="h-4 w-4" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setScale(s => Math.max(0.5, s - 0.1))}>
-                          <ZoomOut className="h-4 w-4" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => window.open(panelUrl, "_blank")}>
-                          <Download className="h-4 w-4" />
-                        </Button>
+                </div>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center p-4 relative">
+        
+                  {/* IMAGE MODE */}
+                  {showType === "image" ? (
+                    <>
+                      {/* Image Zoom Controls */}
+                      <div className="absolute top-4 right-4 flex flex-col gap-2 z-20">
+                        <button
+                          onClick={() => setScale(scale + 0.1)}
+                          className="p-2 rounded-full bg-neutral-800 hover:bg-neutral-700 shadow-md"
+                        >
+                          +
+                        </button>
+                        <button
+                          onClick={() => setScale(Math.max(scale - 0.1, 0.5))}
+                          className="p-2 rounded-full bg-neutral-800 hover:bg-neutral-700 shadow-md"
+                        >
+                          -
+                        </button>
+                        <button
+                          onClick={() => setScale(1)}
+                          className="p-2 rounded-full bg-neutral-800 hover:bg-neutral-700 shadow-md"
+                        >
+                          Reset
+                        </button>
                       </div>
+        
+                      <img
+                        src={panelUrl}
+                        style={{ transform: `scale(${scale})`, transition: "0.2s ease" }}
+                        className="max-w-full max-h-full rounded-lg shadow-lg select-none"
+                        onLoad={() => setIsLoading(false)}
+                      />
+                    </>
+                  ) : (
+                    /* PDF MODE */
+                    <div className="w-full h-full">
+                      <div className="flex justify-end mb-2 pr-2">
+                        <button
+                          onClick={() => setPdfZoom(pdfZoom + 0.1)}
+                          className="text-xs px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700"
+                        >
+                          Zoom +
+                        </button>
+                        <button
+                          onClick={() => setPdfZoom(Math.max(pdfZoom - 0.1, 0.5))}
+                          className="text-xs px-2 py-1 rounded bg-neutral-800 hover:bg-neutral-700 ml-2"
+                        >
+                          Zoom -
+                        </button>
+                      </div>
+        
+                      <ScrollArea className="w-full rounded-lg h-[calc(100%-40px)]">
+                        <iframe
+                          src={`${panelUrl}#toolbar=0&zoom=${pdfZoom * 100}`}
+                          title="PDF Preview"
+                          className="w-full h-[600px]"
+                          onLoad={() => setIsLoading(false)}
+                        />
+                      </ScrollArea>
                     </div>
-
-                    {/* Viewer */}
-                    <div className="w-full h-full overflow-auto bg-neutral-950 flex items-center justify-center p-4">
-                      {showType === "image" ? (
-                        <img src={panelUrl} style={{ transform: `scale(${scale})` }} className="max-w-full max-h-full rounded-lg" />
-                      ) : (
-                        <Document file={panelUrl} className="flex flex-col items-center">
-                          <Page pageNumber={1} scale={scale} renderAnnotationLayer={false} />
-                        </Document>
-                      )}
+                  )}
+                </div>
+              )}
+        
+              {/* AI SUMMARY */}
+              {aiSummary && (
+                <div className="p-4">
+                  <div
+                    className="flex items-center justify-between cursor-pointer"
+                    onClick={() => setShowSummary(!showSummary)}
+                  >
+                    <h3 className="text-neutral-200 mb-2 font-medium flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-yellow-400" />
+                      AI Summary
+                    </h3>
+        
+                    <button className="px-3 py-1 text-xs rounded-full bg-neutral-800 hover:bg-neutral-700
+                text-neutral-300 transition">
+                      {showSummary ? "Hide" : "Show"}
+                    </button>
+                  </div>
+        
+                  {showSummary && (
+                    <div className="bg-neutral-800/60 border border-neutral-700 rounded-xl p-4 
+                      text-neutral-300 text-sm shadow-inner mt-2 relative">
+        
+                      {/* Copy Feature */}
+                      <button
+                        onClick={() => navigator.clipboard.writeText(aiSummary)}
+                        className="px-3 py-1  right-2 text-xs rounded-full bg-neutral-800 hover:bg-neutral-700
+                text-neutral-300 "
+                      >
+                        Copy
+                      </button>
+        
+                      <Markdown>{aiSummary}</Markdown>
                     </div>
-                  </>
-                )}
-
-
-                <p className="p-4">{aiSummary}</p>
-
-
-              </div>
+                  )}
+                </div>
+              )}
             </div>
-          </Panel>
+          </div>
+        </Panel>
+        
+
         }
         {showPanel && <PanelResizeHandle />}
 

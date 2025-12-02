@@ -56,8 +56,8 @@ export const user = pgTable('user', {
     url: text('url').notNull(),
     imagekit_id: varchar('imagekit_id'),
     processed_status: processedStatusEnum('processed_status').notNull().default('pending'),
-    ai_generated_summary: text('ai_generated_summary'),
-    embeddings: varchar('embeddings').$type<any>(), // Store as JSON string or array depending on your ORM support
+    ai_generated_summary: text('ai_generated_summary').default("null"),
+    embeddings: varchar('embeddings').$type<any>().default("null"), // Store as JSON string or array depending on your ORM support
     created_at: timestamp('created_at').defaultNow().notNull(),
     updated_at: timestamp('updated_at').defaultNow().notNull(),
   });

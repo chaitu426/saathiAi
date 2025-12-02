@@ -63,7 +63,6 @@ const materialWorker = new Worker(
         .set({
           processed_status: "completed",
           ai_generated_summary: aiSummary,
-          embeddings: null, // or embeddingVector
         })
         .where(eq(study_material.id, materialId));
         await emitProgress("done", "processed successfully!")
