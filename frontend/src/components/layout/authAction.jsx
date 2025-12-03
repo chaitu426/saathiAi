@@ -2,9 +2,18 @@
 import { Link } from "react-router-dom";
 import { Button } from "../ui/button";
 import useAuthStore from "@/stores/useAuthStore";
+import {useEffect} from "react";
 
 const AuthActions = () => {
-  const { token, logout, user } = useAuthStore();
+  const { token, logout, user, tokenexpiry } = useAuthStore();
+
+  useEffect(async() => {
+    const res = await tokenexpiry();
+    if(res.status === 401){
+       await logout();
+    };
+  },[]);
+
 
   if (token) {
     return (

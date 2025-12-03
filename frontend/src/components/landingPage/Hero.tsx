@@ -4,8 +4,11 @@ import Container from "../global/container";
 import Icons from "../global/icons";
 import { Button } from "../ui/button";
 import { OrbitingCircles } from "../ui/orbiting-circles";
+import useAuthStore from "@/stores/useAuthStore";
 
 const Hero = () => {
+
+    const {token} = useAuthStore();
     return (
         <div className="relative flex flex-col items-center justify-center w-full py-20">
 
@@ -67,12 +70,21 @@ const Hero = () => {
                     </Container>
                     <Container delay={0.25} className="z-20">
                         <div className="flex items-center justify-center mt-6 gap-x-4">
-                            <Link to="#" className="flex items-center gap-2 group">
+                            {token ? (
+                                <Link to="/chat/1" className="flex items-center gap-2 group">
+                                <Button size="lg">
+                                    Continue Chating
+                                    <ArrowRightIcon className="size-4 group-hover:translate-x-1 transition-all duration-300" />
+                                </Button>
+                            </Link>
+                            ): (
+                                <Link to="/login" className="flex items-center gap-2 group">
                                 <Button size="lg">
                                     Get Started
                                     <ArrowRightIcon className="size-4 group-hover:translate-x-1 transition-all duration-300" />
                                 </Button>
                             </Link>
+                            )}
                         </div>
                     </Container>
                     <Container delay={0.3} className="relative">

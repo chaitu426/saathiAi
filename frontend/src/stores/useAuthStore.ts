@@ -19,6 +19,7 @@ interface AuthStore {
   signup: (data: { username: string; email: string; password: string }) => Promise<boolean>;
   login: (data: { email: string; password: string }) => Promise<any>;
   userdetails:(data: {course: string; branch: string; year: string, learning_goals: string}) => Promise<any>;
+  tokenexpiry:() => Promise<any>;
   logout: () => void;
 }
 
@@ -91,6 +92,34 @@ const useAuthStore = create<AuthStore>()(
       logout: () => {
         set({ user: null, token: null });
         localStorage.removeItem("auth-storage");
+      },
+
+      tokenexpiry: async () => {
+        set({ loading: true, error: null });
+        const token = getToken();
+        console.log("Token in tokenexpiry:", token);
+        try {
+          const res = await axios.get(
+            `${BASE_URL}/api/v1/user/tokenexpiry`,
+             {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+              }
+            }
+          );
+          set({loading: false });
+          return res;  
+        } catch (err: any) {
+          let message = "Invalid credentials or server error.";
+
+          if (axios.isAxiosError(err)) {
+            const axiosErr = err as AxiosError<{ message?: string }>;
+            message = axiosErr.response?.data?.message || axiosErr.message || message;
+          }
+
+          set({ error: message, loading: false });
+          return err;
+        }
       },
 
       userdetails: async (data) =>{
